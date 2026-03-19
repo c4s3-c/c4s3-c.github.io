@@ -32,7 +32,7 @@ if (!slug) {
         .then(html => ({ meta, html }));
     })
     .then(({ meta, html }) => {
-      document.title = `NULL_SEC // ${meta.title}`;
+      document.title = `c4s3-c // ${meta.title}`;
 
       const tags = meta.tags.map(tag => {
         const isHighlight = meta.highlight_tags.includes(tag);
