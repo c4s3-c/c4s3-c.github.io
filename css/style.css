@@ -423,7 +423,7 @@ nav a:hover::before { transform: scaleX(1); }
   margin: 24px 0;
   overflow-x: auto;
   font-size: 13px;
-  color: #4fc3f7;
+  color: #E5FBFF;
   position: relative;
 }
 
