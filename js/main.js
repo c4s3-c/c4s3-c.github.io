@@ -24,7 +24,7 @@ function renderCard(post, index) {
 
   const card = document.createElement('a');
   card.className   = 'post-card';
-  card.href        = `post.html?slug=${post.slug}`;
+  card.href        = `posts/post.html?slug=${post.slug}`;
   card.style.opacity   = '0';
   card.style.transform = 'translateY(12px)';
   card.style.transition = `opacity 0.4s ease ${index * 0.08}s, transform 0.4s ease ${index * 0.08}s`;
