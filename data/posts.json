@@ -7,5 +7,5 @@
     "tags": ["crto", "active-directory", "kerberos", "evasion"],
     "highlight_tags": ["crto", "active-directory"],
     "excerpt": "Análisis práctico del ataque, detección de SPNs vulnerables y estrategias de evasión en entornos monitoreados con Defender AV activo."
-  },
+  }
 ]
