@@ -1,38 +1,62 @@
-[
-  {
-    "id": "001",
-    "slug": "kerberoasting-tgs",
-    "title": "Kerberoasting desde cero: extrayendo TGS sin levantar alertas",
-    "date": "2024-11-12",
-    "tags": ["crto", "active-directory", "kerberos", "evasion"],
-    "highlight_tags": ["crto", "active-directory"],
-    "excerpt": "Análisis práctico del ataque, detección de SPNs vulnerables y estrategias de evasión en entornos monitoreados con Defender AV activo."
-  },
-  {
-    "id": "002",
-    "slug": "cobalt-strike-staging",
-    "title": "Staging Cobalt Strike: configuración de listeners y malleable C2 profiles",
-    "date": "2024-10-28",
-    "tags": ["crto", "c2", "cobalt-strike"],
-    "highlight_tags": ["crto"],
-    "excerpt": "Desde la instalación hasta el primer beacon activo. Perfil malleable para imitar tráfico legítimo de Office 365."
-  },
-  {
-    "id": "003",
-    "slug": "bloodhound-neo4j",
-    "title": "BloodHound + Neo4j: mapeando rutas de ataque en AD en menos de 10 minutos",
-    "date": "2024-10-05",
-    "tags": ["recon", "osint", "bloodhound"],
-    "highlight_tags": ["bloodhound"],
-    "excerpt": "Cómo interpretar los grafos de ataque, queries Cypher más útiles y automatización de la ingesta de datos con SharpHound."
-  },
-  {
-    "id": "004",
-    "slug": "token-impersonation",
-    "title": "Token Impersonation en Windows: de usuario de servicio a SYSTEM",
-    "date": "2024-09-18",
-    "tags": ["privesc", "windows", "token-impersonation"],
-    "highlight_tags": ["privesc"],
-    "excerpt": "Explotación de SeImpersonatePrivilege con variantes de Potato y técnicas alternativas cuando las clásicas están parcheadas."
-  }
-]
+const postContainer = document.getElementById('post-container');
+
+function updateClock() {
+  const t = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+  const el = document.getElementById('clock');
+  if (el) el.textContent = t;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+const params = new URLSearchParams(window.location.search);
+const slug   = params.get('slug');
+
+if (!slug) {
+  postContainer.innerHTML = `
+    <div style="color:#ff2d6b; font-size:12px; padding:16px 0;">
+      ERROR: no se especificó ningún post.
+    </div>
+  `;
+} else {
+  fetch('../data/posts.json')
+    .then(res => res.json())
+    .then(posts => {
+      const meta = posts.find(p => p.slug === slug);
+      if (!meta) throw new Error(`Post "${slug}" no encontrado en posts.json`);
+
+      return fetch(`../posts/${slug}.html`)
+        .then(res => {
+          if (!res.ok) throw new Error(`Archivo ${slug}.html no encontrado`);
+          return res.text();
+        })
+        .then(html => ({ meta, html }));
+    })
+    .then(({ meta, html }) => {
+      document.title = `NULL_SEC // ${meta.title}`;
+
+      const tags = meta.tags.map(tag => {
+        const isHighlight = meta.highlight_tags.includes(tag);
+        return `<span class="ctag ${isHighlight ? 'highlight' : ''}">${tag.toUpperCase()}</span>`;
+      }).join('');
+
+      postContainer.innerHTML = `
+        <div class="post-header">
+          <div class="post-header-date">
+            TRANSMISIÓN // ${meta.date} // ${meta.id}
+          </div>
+          <h1>${meta.title}</h1>
+          <div class="card-tags">${tags}</div>
+        </div>
+        <div class="post-body">
+          ${html}
+        </div>
+      `;
+    })
+    .catch(err => {
+      postContainer.innerHTML = `
+        <div style="color:#ff2d6b; font-size:12px; padding:16px 0;">
+          ERROR: ${err.message}
+        </div>
+      `;
+    });
+}
