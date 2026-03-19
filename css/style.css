@@ -385,7 +385,7 @@ nav a:hover::before { transform: scaleX(1); }
 }
 
 .post-body {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.85;
 }
 
@@ -400,7 +400,7 @@ nav a:hover::before { transform: scaleX(1); }
 }
 
 .post-body p {
-  color: #E6ECF5;
+  color: #c9d1d9;
   margin-bottom: 18px;
 }
 
